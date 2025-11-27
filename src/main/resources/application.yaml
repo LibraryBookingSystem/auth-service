@@ -1,0 +1,21 @@
+server:
+  port: 3002
+
+spring:
+  application:
+    name: auth-service
+
+# User Service Configuration
+user-service:
+  url: ${USER_SERVICE_URL:http://localhost:3001}
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:my-super-secret-jwt-key-for-library-booking-system-2024}
+  expiration: ${JWT_EXPIRATION:3600000}
+
+# Logging
+logging:
+  level:
+    com.library: DEBUG
+    org.springframework: INFO

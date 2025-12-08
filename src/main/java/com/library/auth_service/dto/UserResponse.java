@@ -10,6 +10,7 @@ public class UserResponse {
     private String role;
     private boolean restricted;
     private String restrictionReason;
+    private boolean pendingApproval;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
@@ -33,6 +34,9 @@ public class UserResponse {
     
     public String getRestrictionReason() { return restrictionReason; }
     public void setRestrictionReason(String restrictionReason) { this.restrictionReason = restrictionReason; }
+
+    public boolean isPendingApproval() { return pendingApproval; }
+    public void setPendingApproval(boolean pendingApproval) { this.pendingApproval = pendingApproval; }
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

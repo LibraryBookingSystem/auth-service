@@ -17,6 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
 
 /**
  * Service for handling authentication operations
@@ -29,6 +32,7 @@ public class AuthService {
     
     private final RestTemplate restTemplate;
     private final JwtUtil jwtUtil;
+    private final ObjectMapper objectMapper;
     
     @Value("${user-service.url}")
     private String userServiceUrl;
@@ -36,6 +40,7 @@ public class AuthService {
     public AuthService(RestTemplate restTemplate, JwtUtil jwtUtil) {
         this.restTemplate = restTemplate;
         this.jwtUtil = jwtUtil;
+        this.objectMapper = new ObjectMapper();
     }
     
     /**
@@ -66,6 +71,11 @@ public class AuthService {
             
             if (response.getStatusCode() == HttpStatus.CREATED && response.getBody() != null) {
                 UserResponse user = response.getBody();
+                
+                // Check if user is pending approval
+                if (user.isPendingApproval()) {
+                    throw new AuthenticationException("Registration successful. Your account is pending approval. Please wait for an administrator to approve it.");
+                }
                 
                 // Generate JWT token
                 String token = jwtUtil.generateToken(
@@ -119,6 +129,11 @@ public class AuthService {
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 UserResponse user = response.getBody();
                 
+                // Check if user is pending approval
+                if (user.isPendingApproval()) {
+                    throw new AuthenticationException("Your account is pending approval. Please contact an administrator.");
+                }
+
                 // Generate JWT token
                 String token = jwtUtil.generateToken(
                     user.getUsername(),
@@ -135,12 +150,39 @@ public class AuthService {
         } catch (HttpClientErrorException e) {
             logger.error("Authentication failed: {}", e.getMessage());
             if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                throw new AuthenticationException("Invalid username or password");
+                // Try to extract the actual error message from user-service response
+                String errorMessage = extractErrorMessage(e);
+                throw new AuthenticationException(errorMessage);
             }
             throw new UserServiceException("Failed to communicate with user service");
         } catch (RestClientException e) {
             logger.error("Error communicating with user service: ", e);
             throw new UserServiceException("User service is unavailable");
         }
+    }
+    
+    /**
+     * Extract error message from HttpClientErrorException response body
+     */
+    private String extractErrorMessage(HttpClientErrorException e) {
+        try {
+            String responseBody = e.getResponseBodyAsString();
+            if (responseBody != null && !responseBody.isEmpty()) {
+                Map<String, Object> errorResponse = objectMapper.readValue(
+                    responseBody, 
+                    new TypeReference<Map<String, Object>>() {}
+                );
+                if (errorResponse.containsKey("message")) {
+                    Object message = errorResponse.get("message");
+                    if (message != null) {
+                        return message.toString();
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            logger.warn("Failed to parse error response: {}", ex.getMessage());
+        }
+        // Default message if extraction fails
+        return "Invalid username or password";
     }
 }

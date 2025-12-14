@@ -14,16 +14,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Global exception handler for the auth service
+ * Exception handler for Auth Service.
+ * Extends common GlobalExceptionHandler.
  */
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends com.library.common.exception.GlobalExceptionHandler {
     
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     
-    /**
-     * Handle authentication exceptions
-     */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
         logger.error("Authentication error: {}", ex.getMessage());
@@ -35,9 +33,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
     
-    /**
-     * Handle user service communication exceptions
-     */
     @ExceptionHandler(UserServiceException.class)
     public ResponseEntity<ErrorResponse> handleUserServiceException(UserServiceException ex) {
         logger.error("User service error: {}", ex.getMessage());
@@ -49,9 +44,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
     }
     
-    /**
-     * Handle validation errors
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -69,23 +61,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     
-    /**
-     * Handle all other exceptions
-     */
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
-        logger.error("Unexpected error: ", ex);
-        ErrorResponse error = new ErrorResponse(
-            HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            "An unexpected error occurred",
-            LocalDateTime.now()
-        );
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-    
-    /**
-     * Error response DTO
-     */
     public static class ErrorResponse {
         private int status;
         private String message;

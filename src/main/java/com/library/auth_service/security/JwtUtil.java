@@ -96,4 +96,27 @@ public class JwtUtil {
         final String tokenUsername = extractUsername(token);
         return (tokenUsername.equals(username) && !isTokenExpired(token));
     }
+    
+    /**
+     * Validate token without username check (for gateway validation)
+     */
+    public boolean validateToken(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            return !claims.getExpiration().before(new Date());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Extract all claims from token (public method for validation endpoint)
+     */
+    public Claims extractClaims(String token) {
+        try {
+            return extractAllClaims(token);
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid token", e);
+        }
+    }
 }

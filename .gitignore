@@ -24,3 +24,5 @@ hs_err_pid*
 replay_pid*
 target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
 target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst
+/target/maven-status/maven-compiler-plugin/compile/default-compile
+/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile

@@ -11,6 +11,7 @@ public class UserResponse {
     private boolean restricted;
     private String restrictionReason;
     private boolean pendingApproval;
+    private boolean rejected;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
@@ -37,6 +38,9 @@ public class UserResponse {
 
     public boolean isPendingApproval() { return pendingApproval; }
     public void setPendingApproval(boolean pendingApproval) { this.pendingApproval = pendingApproval; }
+    
+    public boolean isRejected() { return rejected; }
+    public void setRejected(boolean rejected) { this.rejected = rejected; }
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

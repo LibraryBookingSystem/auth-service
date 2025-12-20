@@ -96,6 +96,10 @@ public class AuthService {
                 throw new AuthenticationException("Username or email already exists");
             }
             throw new UserServiceException("Failed to communicate with user service: " + e.getMessage());
+        } catch (org.springframework.web.client.HttpServerErrorException e) {
+            logger.error("User service returned server error: {}", e.getMessage());
+            String errorMessage = extractErrorMessage(e);
+            throw new UserServiceException("User service error: " + errorMessage);
         } catch (RestClientException e) {
             logger.error("Error communicating with user service: ", e);
             throw new UserServiceException("User service is unavailable");
@@ -155,6 +159,10 @@ public class AuthService {
                 throw new AuthenticationException(errorMessage);
             }
             throw new UserServiceException("Failed to communicate with user service");
+        } catch (org.springframework.web.client.HttpServerErrorException e) {
+            logger.error("User service returned server error: {}", e.getMessage());
+            String errorMessage = extractErrorMessage(e);
+            throw new UserServiceException("User service error: " + errorMessage);
         } catch (RestClientException e) {
             logger.error("Error communicating with user service: ", e);
             throw new UserServiceException("User service is unavailable");
@@ -162,9 +170,9 @@ public class AuthService {
     }
     
     /**
-     * Extract error message from HttpClientErrorException response body
+     * Extract error message from RestClientResponseException response body
      */
-    private String extractErrorMessage(HttpClientErrorException e) {
+    private String extractErrorMessage(org.springframework.web.client.RestClientResponseException e) {
         try {
             String responseBody = e.getResponseBodyAsString();
             if (responseBody != null && !responseBody.isEmpty()) {
@@ -178,11 +186,17 @@ public class AuthService {
                         return message.toString();
                     }
                 }
+                if (errorResponse.containsKey("error")) {
+                    Object error = errorResponse.get("error");
+                    if (error != null) {
+                        return error.toString();
+                    }
+                }
             }
         } catch (Exception ex) {
             logger.warn("Failed to parse error response: {}", ex.getMessage());
         }
         // Default message if extraction fails
-        return "Invalid username or password";
+        return e.getMessage() != null ? e.getMessage() : "An error occurred";
     }
 }
